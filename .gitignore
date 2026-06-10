@@ -1,0 +1,19 @@
+# secrets
+.env
+
+# course dataset (large; pull from Ops-AI-Student/week5/data)
+data/
+*.db
+
+# python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+
+# os/editor
+.DS_Store
+.idea/
+.vscode/
