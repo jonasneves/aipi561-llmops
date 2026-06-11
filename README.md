@@ -2,6 +2,7 @@
 
 ![Python](https://img.shields.io/badge/python-3.12-3776AB?logo=python&logoColor=white)
 ![Gemini 2.5 Flash](https://img.shields.io/badge/LLM-Gemini%202.5%20Flash-4285F4?logo=googlegemini&logoColor=white)
+![Vertex AI](https://img.shields.io/badge/runtime-Vertex%20AI-0577B1?logo=googlecloud&logoColor=white)
 ![Deploy](https://img.shields.io/badge/deploy-GKE-0577B1?logo=googlecloud&logoColor=white)
 [![License: MIT](https://img.shields.io/badge/license-MIT-012169)](LICENSE)
 
@@ -43,17 +44,23 @@ flowchart TB
 - **Agent** — a Gemini 2.5 Flash reasoning loop: the LLM picks a tool, observes the result, then loops or synthesizes an answer.
 - **Tools** — SQLite lookups (employees, expenses, projects, benefits), policy-document retrieval via vector search, calculations/aggregations, and access-control filtering (`user_role`-aware).
 - **Cost tracking** — token and dollar accounting per query.
-- **Deploy** — Google Kubernetes Engine (shares the Project-1 cluster).
+- **Runtime** — Vertex AI on the `ops-ai-jonas` GCP project (the same project Project 1's GKE infra lives in), billed to course credits. Deploys to GKE on that cluster.
 
 ## Run
 
+Auth runs through Vertex AI by default — no API key, credentials flow from your
+gcloud identity into the `ops-ai-jonas` project (where billing/credits live):
+
 ```bash
-cp .env.example .env          # add GOOGLE_API_KEY — aistudio.google.com/app/apikey
+gcloud auth application-default login      # one-time ADC setup
 pip install -r requirements.txt
 make data                     # pull techcorp.db + policy docs (~50MB, git-ignored)
 make check                    # verify data + config
 make run Q="What is the PTO policy?" ROLE=manager
 ```
+
+To use an AI-Studio API key instead, set `USE_VERTEX=0` and `GOOGLE_API_KEY` in
+`.env` (see `.env.example`) — note the free tier caps at 20 requests/day/model.
 
 The dataset comes from the [course starter](https://github.com/AIPI-561-Operationalizing-AI/Ops-AI-Student/tree/main/week5) and is git-ignored (large); `make data` fetches it.
 

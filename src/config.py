@@ -14,9 +14,19 @@ POLICIES_PATH = DATA_DIR / "policies.json"
 
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "")
 
-# gemini-2.5-flash: the free-tier model. (2.5-pro is billing-only now —
-# free tier returns limit:0.) The reasoning loop and tool-use are identical.
-MODEL = "gemini-2.5-flash"
+# Auth backend. Default is Vertex AI on the ops-ai-jonas GCP project — the same
+# project Project 1 (aipi561-mlops) stands its GKE infra in. Vertex bills the
+# Education credits directly via project quotas (no AI-Studio free-tier 20/day
+# cap, which a sponsored billing account never escapes), so it's the durable
+# path and aligns this repo with the shared infra. Auth flows from ADC
+# (`gcloud auth application-default login`) — no API key needed.
+# Set USE_VERTEX=0 to fall back to an AI-Studio API key (GOOGLE_API_KEY).
+USE_VERTEX = os.getenv("USE_VERTEX", "1") not in ("0", "false", "")
+GOOGLE_CLOUD_PROJECT = os.getenv("GOOGLE_CLOUD_PROJECT", "ops-ai-jonas")
+GOOGLE_CLOUD_LOCATION = os.getenv("GOOGLE_CLOUD_LOCATION", "global")
+
+# 2.5-flash is the workhorse the TA approved. Override via the MODEL env var.
+MODEL = os.getenv("MODEL", "gemini-2.5-flash")
 
 # Pricing (USD per 1M tokens) — figures fixed by the Week-5 rubric, not live
 # list price. The cost-tracking mechanism is graded against these; cost claims
