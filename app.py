@@ -25,10 +25,19 @@ def cmd_check() -> int:
 
 
 def cmd_ask(question: str, role: str) -> int:
-    result = Agent().query(question, user_role=role)
+    try:
+        result = Agent().query(question, user_role=role)
+    except ValueError as e:
+        print(e)
+        return 1
+    for call in result.get("tool_calls", []):
+        print(f"  → {call['tool']}({call['args']})")
+    if result.get("tool_calls"):
+        print()
     print(result["answer"])
     print(
-        f"\n[{result['tokens_used']} tok | "
+        f"\n[{result['tokens_used']} tok "
+        f"({result['input_tokens']} in / {result['output_tokens']} out) | "
         f"${result['cost']:.6f} | role={result['role']}]"
     )
     return 0
