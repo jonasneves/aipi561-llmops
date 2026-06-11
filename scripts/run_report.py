@@ -3,14 +3,38 @@
 Needs GOOGLE_API_KEY. Writes report.md (summary + per-query detail) and
 report/run.txt (full console transcript) at the repo root.
 """
+import os
 import sys
+import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
+from google.genai import errors  # noqa: E402
+
 from src import config  # noqa: E402
 from src.agent import Agent  # noqa: E402
+
+# Free-tier Flash allows 5 requests/min; each query is ~2 model calls. Pace
+# query starts so a 10-query run stays under the limit.
+PACE_SECONDS = int(os.getenv("REPORT_PACE_SECONDS", "30"))
+
+
+_RETRYABLE = {429, 503}  # rate-limited / transient server overload
+
+
+def _query_with_retry(agent, q, role, attempts: int = 4):
+    """Run one query, retrying transient 429/503 with escalating backoff."""
+    for attempt in range(1, attempts + 1):
+        try:
+            return agent.query(q, user_role=role)
+        except errors.APIError as e:
+            if getattr(e, "code", None) not in _RETRYABLE or attempt == attempts:
+                raise
+            wait = 20 * attempt
+            print(f"    {e.code}; retry {attempt}/{attempts - 1} in {wait}s ...")
+            time.sleep(wait)
 
 # (question, role) — spans all three tools, multi-tool reasoning, and roles.
 QUERIES = [
@@ -41,10 +65,12 @@ def main() -> int:
     rows = []
 
     for i, (q, role) in enumerate(QUERIES, 1):
+        if i > 1:
+            time.sleep(PACE_SECONDS)  # stay under the 5 req/min free-tier limit
         line = f"[{i}/10] ({role}) {q}"
         print(line)
         transcript.append(line)
-        r = agent.query(q, user_role=role)
+        r = _query_with_retry(agent, q, role)
         for c in r["tool_calls"]:
             t = f"    -> {c['tool']}({c['args']})"
             print(t)

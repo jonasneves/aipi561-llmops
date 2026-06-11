@@ -1,0 +1,79 @@
+[1/10] (engineer) What is the PTO policy, and how many days do managers get?
+    -> policy_search({'query': 'PTO policy'})
+    1574 tok (1470 in / 104 out) = $0.000141
+    ANSWER: TechCorp's Paid Time Off (PTO) Policy states that all full-time employees receive paid time off. PTO resets on January 1st each year, and unused PTO does not roll over.
+
+Managers receive 20 days of PTO per year.
+
+The company also observes the following holidays: New Year's Day, MLK Day, Presidents Day, Memorial Day, Independence Day, Labor Day, Thanksgiving, and Christmas.
+
+(Source: Paid Time Off Policy)
+[2/10] (engineer) What's the expense approval limit for a manager?
+    -> expense_query({'role': 'manager'})
+    633 tok (613 in / 20 out) = $0.000052
+    ANSWER: The expense approval limit for a manager is $5,000.
+[3/10] (manager) Look up the employee with ID 1 — name, title, and department.
+    -> employee_lookup({'employee_id': 1})
+    872 tok (851 in / 21 out) = $0.000070
+    ANSWER: Brian Yang is a VP Engineering (Executive) in the Engineering department.
+[4/10] (engineer) What does the travel policy say about international flight limits?
+    -> policy_search({'query': 'travel policy international flight limits'})
+    1449 tok (1407 in / 42 out) = $0.000118
+    ANSWER: According to the "Travel and Expense Policy", all international travel requires VP approval. The budget limits for international travel are 50% higher than domestic travel limits.
+[5/10] (manager) Find an employee whose name contains 'Smith'.
+    -> employee_lookup({'employee_name': 'Smith'})
+    1874 tok (1748 in / 126 out) = $0.000169
+    ANSWER: Here are the employees whose names contain 'Smith':
+
+*   **Desiree Smith** (ID: 20) - Mid-level Specialist in Operations
+*   **Jessica Smith** (ID: 121) - Principal Specialist in Marketing
+*   **Tina Smith** (ID: 122) - C-Suite Specialist in Product
+*   **Patrick Smith DDS** (ID: 152) - Senior Specialist in Sales
+*   **Toni Smith** (ID: 157) - Sr. Manager Specialist in Marketing
+[6/10] (manager) What's the approval limit for a director, and does policy require a receipt for a $30 expense?
+    -> expense_query({'role': 'director'})
+    -> policy_search({'query': 'receipt requirement expense limit'})
+    -> policy_search({'query': 'receipt requirement'})
+    2458 tok (2404 in / 54 out) = $0.000196
+    ANSWER: A director's expense approval limit is $25,000.
+
+I could not find a policy document that specifies receipt requirements for a $30 expense.
+[7/10] (engineer) What is the company's security or data-handling policy?
+    -> policy_search({'query': 'security or data-handling policy'})
+    1486 tok (1277 in / 209 out) = $0.000158
+    ANSWER: TechCorp has a GDPR Compliance Policy that outlines requirements for data handling and security. Key aspects include:
+
+**Data Subject Rights:**
+*   Right to access (within 30 days)
+*   Right to rectification
+*   Right to erasure ("right to be forgotten")
+*   Right to restrict processing
+*   Right to data portability
+
+**TechCorp Obligations:**
+*   Maintain a data inventory
+*   Conduct Data Protection Impact Assessments (DPIAs) for new processing activities
+*   Report breaches within 72 hours
+*   Appoint a Data Protection Officer (DPO)
+*   Document all processing activities
+
+**Employee Data Handling:**
+*   Employee data should only be processed for HR, payroll, and benefits purposes.
+*   Cross-border transfers of employee data require consent.
+*   Data retention policies are in place (maximum retention period is specified as "ma").
+
+This information is from the "GDPR Compliance Policy".
+[8/10] (manager) What is employee 100's title and department?
+    -> employee_lookup({'employee_id': 100})
+    850 tok (824 in / 26 out) = $0.000070
+    ANSWER: Employee 100, Andrea Hughes, is a Director Specialist in the Human Resources department.
+[9/10] (engineer) What is the expense submission deadline, per policy?
+    -> policy_search({'query': 'expense submission deadline'})
+    -> policy_search({'query': 'expense reporting deadline'})
+    1893 tok (1845 in / 48 out) = $0.000153
+    ANSWER: I couldn't find any information about an expense submission deadline in the available policy documents. The "Travel and Expense Policy" does not specify a deadline for submitting expenses.
+[10/10] (manager) Compare the expense approval limits for ic3 versus vp.
+    -> expense_query({'role': 'ic3'})
+    -> expense_query({'role': 'vp'})
+    688 tok (645 in / 43 out) = $0.000061
+    ANSWER: The expense approval limit for an IC3 is $2,000, while the limit for a VP is $100,000.

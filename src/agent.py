@@ -72,13 +72,23 @@ class Agent:
     def __init__(self, db_path: str | None = None, api_key: str | None = None):
         self.db_path = db_path or str(config.DB_PATH)
         self.api_key = api_key or config.GOOGLE_API_KEY
-        if not self.api_key:
-            raise ValueError(
-                "GOOGLE_API_KEY not set. Free key: "
-                "https://aistudio.google.com/app/apikey"
-            )
 
-        self.client = genai.Client(api_key=self.api_key)
+        # Default: Vertex AI on the ops-ai-jonas project (ADC auth, bills credits,
+        # no free-tier cap). Fallback: an AI-Studio API key. See config.py.
+        if config.USE_VERTEX and not api_key:
+            self.client = genai.Client(
+                vertexai=True,
+                project=config.GOOGLE_CLOUD_PROJECT,
+                location=config.GOOGLE_CLOUD_LOCATION,
+            )
+        else:
+            if not self.api_key:
+                raise ValueError(
+                    "No credentials. Either set USE_VERTEX=1 with ADC "
+                    "(`gcloud auth application-default login`), or set "
+                    "GOOGLE_API_KEY (https://aistudio.google.com/app/apikey)."
+                )
+            self.client = genai.Client(api_key=self.api_key)
         self.tools = {
             "employee_lookup": EmployeeLookupTool(self.db_path),
             "policy_search": PolicySearchTool(),
@@ -140,8 +150,19 @@ class Agent:
 
             calls = resp.function_calls or []
             if not calls:
-                answer = resp.text or ""
-                break
+                text = (resp.text or "").strip()
+                if text:
+                    answer = text
+                    break
+                # empty turn (e.g. thinking-only) — nudge once for the answer
+                contents.append(
+                    types.Content(
+                        role="user",
+                        parts=[types.Part(text="Now give your final answer to "
+                                          "the question, using the results above.")],
+                    )
+                )
+                continue
 
             contents.append(resp.candidates[0].content)  # model's tool-call turn
             responses = []
