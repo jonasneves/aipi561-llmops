@@ -50,17 +50,24 @@ flowchart TB
 ```bash
 cp .env.example .env          # add GOOGLE_API_KEY — aistudio.google.com/app/apikey
 pip install -r requirements.txt
-python app_starter.py
+make data                     # pull techcorp.db + policy docs (~50MB, git-ignored)
+make check                    # verify data + config
+make run Q="What is the PTO policy?" ROLE=manager
 ```
 
-`app_starter.py` and `data/` come from the [course starter](https://github.com/AIPI-561-Operationalizing-AI/Ops-AI-Student/tree/main/week5); the dataset is git-ignored (large).
+The dataset comes from the [course starter](https://github.com/AIPI-561-Operationalizing-AI/Ops-AI-Student/tree/main/week5) and is git-ignored (large); `make data` fetches it.
 
 ## Layout
 
 ```
 .
-├── app_starter.py     agent + tools
+├── app.py             CLI: `check` / `ask`
+├── src/
+│   ├── config.py      model · pricing · paths
+│   ├── tools.py       EmployeeLookup · PolicySearch · ExpenseQuery
+│   └── agent.py       Gemini reasoning loop + cost tracking
+├── scripts/
+│   └── fetch_data.py  pull the dataset (`make data`)
 ├── data/              techcorp.db + policy docs  (git-ignored)
-├── requirements.txt
-└── .env.example       GOOGLE_API_KEY
+└── requirements.txt
 ```
