@@ -158,6 +158,9 @@ class Agent:
             answer = answer or "Stopped: reached the tool-call step limit."
 
         cost = self._estimate_query_cost(in_tokens, out_tokens)
+        self.queries_run += 1
+        self.total_tokens += in_tokens + out_tokens
+        self.total_cost += cost
         return {
             "answer": answer,
             "tokens_used": in_tokens + out_tokens,
@@ -175,10 +178,11 @@ class Agent:
         )
 
     def get_metrics(self) -> Dict[str, Any]:
-        # cross-query accounting — phase 4
+        n = self.queries_run
         return {
-            "total_queries": self.queries_run,
+            "total_queries": n,
             "total_tokens": self.total_tokens,
-            "total_cost": self.total_cost,
-            "avg_cost_per_query": 0.0,
+            "total_cost": round(self.total_cost, 6),
+            "avg_cost_per_query": round(self.total_cost / n, 6) if n else 0.0,
+            "avg_tokens_per_query": round(self.total_tokens / n, 1) if n else 0.0,
         }
