@@ -14,9 +14,12 @@ POLICIES_PATH = DATA_DIR / "policies.json"
 
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "")
 
-MODEL = "gemini-2.5-pro"
+# gemini-2.5-flash: the free-tier model. (2.5-pro is billing-only now —
+# free tier returns limit:0.) The reasoning loop and tool-use are identical.
+MODEL = "gemini-2.5-flash"
 
-# Gemini 2.5 Pro pricing (USD per 1M tokens) — figures fixed by the
-# Week-5 rubric, not live list price. Cost claims trace here.
+# Pricing (USD per 1M tokens) — figures fixed by the Week-5 rubric, not live
+# list price. The cost-tracking mechanism is graded against these; cost claims
+# trace here.
 INPUT_COST_PER_1M = 0.075
 OUTPUT_COST_PER_1M = 0.3

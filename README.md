@@ -1,7 +1,7 @@
 # AIPI 561 · LLMOps — TechCorp Knowledge Assistant
 
 ![Python](https://img.shields.io/badge/python-3.12-3776AB?logo=python&logoColor=white)
-![Gemini 2.5 Pro](https://img.shields.io/badge/LLM-Gemini%202.5%20Pro-4285F4?logo=googlegemini&logoColor=white)
+![Gemini 2.5 Flash](https://img.shields.io/badge/LLM-Gemini%202.5%20Flash-4285F4?logo=googlegemini&logoColor=white)
 ![Deploy](https://img.shields.io/badge/deploy-GKE-0577B1?logo=googlecloud&logoColor=white)
 [![License: MIT](https://img.shields.io/badge/license-MIT-012169)](LICENSE)
 
@@ -14,7 +14,7 @@ Starter + dataset: [`Ops-AI-Student/week5`](https://github.com/AIPI-561-Operatio
 ```mermaid
 flowchart TB
     Q["employee query<br/>+ user_role"] --> AG
-    subgraph AG ["Agent · Gemini 2.5 Pro reasoning loop"]
+    subgraph AG ["Agent · Gemini 2.5 Flash reasoning loop"]
         R["reason → pick tool"] --> O["observe → answer?"]
         O -->|need more| R
     end
@@ -40,7 +40,7 @@ flowchart TB
 
 ## The system
 
-- **Agent** — a Gemini 2.5 Pro reasoning loop: the LLM picks a tool, observes the result, then loops or synthesizes an answer.
+- **Agent** — a Gemini 2.5 Flash reasoning loop: the LLM picks a tool, observes the result, then loops or synthesizes an answer.
 - **Tools** — SQLite lookups (employees, expenses, projects, benefits), policy-document retrieval via vector search, calculations/aggregations, and access-control filtering (`user_role`-aware).
 - **Cost tracking** — token and dollar accounting per query.
 - **Deploy** — Google Kubernetes Engine (shares the Project-1 cluster).
