@@ -57,7 +57,12 @@ pip install -r requirements.txt
 make data                     # pull techcorp.db + policy docs (~50MB, git-ignored)
 make check                    # verify data + config
 make run Q="What is the PTO policy?" ROLE=manager
+python app_web.py                          # web UI at http://localhost:8479
 ```
+
+`app_web.py` is a small framework-free chat UI over the agent — pick a role,
+ask, and see the tool calls, answer, and per-query cost. The screenshots in
+[`report.pdf`](report.pdf) are live captures of it.
 
 To use an AI-Studio API key instead, set `USE_VERTEX=0` and `GOOGLE_API_KEY` in
 `.env` (see `.env.example`) — note the free tier caps at 20 requests/day/model.
@@ -69,12 +74,18 @@ The dataset comes from the [course starter](https://github.com/AIPI-561-Operatio
 ```
 .
 ├── app.py             CLI: `check` / `ask`
+├── app_web.py         web UI (framework-free) → http://localhost:8479
+├── web/index.html     the UI
 ├── src/
-│   ├── config.py      model · pricing · paths
+│   ├── config.py      model · pricing · paths · Vertex/key auth
 │   ├── tools.py       EmployeeLookup · PolicySearch · ExpenseQuery
 │   └── agent.py       Gemini reasoning loop + cost tracking
 ├── scripts/
-│   └── fetch_data.py  pull the dataset (`make data`)
+│   ├── fetch_data.py  pull the dataset (`make data`)
+│   ├── run_report.py  10-query eval → report.md + report.json
+│   └── build_report_pdf.py  report.json + screenshots → report.pdf
+├── report.md / report.json / report.pdf   evaluation (10 queries, cost)
+├── report/screenshots/   live UI captures, one per query
 ├── data/              techcorp.db + policy docs  (git-ignored)
 └── requirements.txt
 ```

@@ -1,8 +1,10 @@
 """Week-5 evaluation: run 10 test queries, write report.md with cost accounting.
 
-Needs GOOGLE_API_KEY. Writes report.md (summary + per-query detail) and
-report/run.txt (full console transcript) at the repo root.
+Auth via Vertex AI (default) or GOOGLE_API_KEY — see config.py. Writes
+report.md (summary + per-query detail), report.json (structured trace for the
+visualizer / screenshots), and report/run.txt (full console transcript).
 """
+import json
 import os
 import sys
 import time
@@ -56,8 +58,9 @@ QUERIES = [
 
 
 def main() -> int:
-    if not config.GOOGLE_API_KEY:
-        print("GOOGLE_API_KEY not set — add it to .env (see .env.example).")
+    if not config.USE_VERTEX and not config.GOOGLE_API_KEY:
+        print("No credentials — set USE_VERTEX=1 (ADC) or GOOGLE_API_KEY "
+              "(see .env.example).")
         return 1
 
     agent = Agent()
@@ -87,6 +90,7 @@ def main() -> int:
 
     metrics = agent.get_metrics()
     _write_report(rows, metrics)
+    _write_json(rows, metrics)
     (ROOT / "report").mkdir(exist_ok=True)
     (ROOT / "report" / "run.txt").write_text("\n".join(transcript) + "\n")
     print(f"\nTotal: {metrics['total_queries']} queries, "
@@ -124,6 +128,33 @@ def _write_report(rows, m) -> None:
         out.append(f"*Role: {role} · tools: {tools}*\n")
         out.append(f"{r['answer']}\n")
     (ROOT / "report.md").write_text("\n".join(out) + "\n")
+
+
+def _write_json(rows, m) -> None:
+    """Structured trace — the data source for screenshots, PDF, and viz."""
+    data = {
+        "model": config.MODEL,
+        "rates": {
+            "input_per_1m": config.INPUT_COST_PER_1M,
+            "output_per_1m": config.OUTPUT_COST_PER_1M,
+        },
+        "metrics": m,
+        "queries": [
+            {
+                "n": i,
+                "query": q,
+                "role": role,
+                "answer": r["answer"],
+                "input_tokens": r["input_tokens"],
+                "output_tokens": r["output_tokens"],
+                "tokens_used": r["tokens_used"],
+                "cost": r["cost"],
+                "tool_calls": r["tool_calls"],  # [{tool, args, result}]
+            }
+            for i, q, role, r in rows
+        ],
+    }
+    (ROOT / "report.json").write_text(json.dumps(data, indent=2) + "\n")
 
 
 if __name__ == "__main__":
