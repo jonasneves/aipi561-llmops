@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TechCorp Knowledge Assistant</title>
+<style>
+  :root { --navy:#012169; --royal:#00539B; --shale:#0577B1; --gray:#666;
+          --whisper:#F3F2F1; --hatteras:#E2E6ED; }
+  * { box-sizing:border-box; }
+  body { font:16px/1.55 -apple-system,system-ui,"Segoe UI",sans-serif;
+         color:#1d1d1f; margin:0; background:var(--whisper); }
+  header { background:var(--navy); color:#fff; padding:18px 24px; }
+  header h1 { margin:0; font-size:19px; font-weight:600; letter-spacing:-0.2px; }
+  header p { margin:3px 0 0; font-size:13px; opacity:.8; }
+  main { max-width:780px; margin:0 auto; padding:24px 20px 80px; }
+  .ask { display:flex; gap:10px; align-items:center; background:#fff;
+         border:1px solid var(--hatteras); border-radius:14px; padding:10px;
+         box-shadow:0 1px 3px rgba(0,0,0,.05); position:sticky; top:16px; z-index:5; }
+  .ask select { border:1px solid var(--hatteras); border-radius:9px; padding:9px 8px;
+                font:inherit; color:var(--navy); font-weight:600; background:#fff; }
+  .ask input { flex:1; border:none; outline:none; font:inherit; padding:9px 6px; }
+  .ask button { background:var(--royal); color:#fff; border:none; border-radius:9px;
+                padding:10px 18px; font:inherit; font-weight:600; cursor:pointer; }
+  .ask button:disabled { opacity:.5; }
+  .card { background:#fff; border:1px solid var(--hatteras); border-radius:14px;
+          padding:18px 20px; margin-top:18px; box-shadow:0 1px 3px rgba(0,0,0,.05); }
+  .q { font-weight:600; color:var(--navy); margin:0 0 2px; }
+  .role { display:inline-block; font-size:12px; font-weight:600; color:var(--shale);
+          background:#eaf4fb; border-radius:20px; padding:2px 10px; margin-bottom:12px; }
+  .tools { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 14px; }
+  .tool { font:12.5px ui-monospace,"SF Mono",Menlo,monospace; color:#fff;
+          background:var(--shale); border-radius:8px; padding:4px 9px; }
+  .tool .args { opacity:.78; }
+  .answer { white-space:pre-wrap; }
+  .meta { margin-top:14px; padding-top:12px; border-top:1px solid var(--whisper);
+          color:var(--gray); font-size:13px; display:flex; gap:18px; flex-wrap:wrap; }
+  .meta b { color:var(--navy); }
+  .spin { color:var(--gray); font-style:italic; }
+</style>
+</head>
+<body>
+<header>
+  <h1>TechCorp Knowledge Assistant</h1>
+  <p>LLM agent · employee lookup · policy search (RAG) · expense limits — Gemini 2.5 Flash on Vertex AI</p>
+</header>
+<main>
+  <form class="ask" id="ask">
+    <select id="role" aria-label="role">
+      <option value="engineer">engineer</option>
+      <option value="manager">manager</option>
+    </select>
+    <input id="q" placeholder="Ask about employees, policies, or expense limits…" autocomplete="off">
+    <button type="submit" id="send">Ask</button>
+  </form>
+  <div id="out"></div>
+</main>
+<script>
+const esc = s => String(s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const fmtArgs = a => Object.entries(a||{}).map(([k,v]) => `${k}=${JSON.stringify(v)}`).join(', ');
+const out = document.getElementById('out');
+
+document.getElementById('ask').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const q = document.getElementById('q').value.trim();
+  const role = document.getElementById('role').value;
+  if (!q) return;
+  const send = document.getElementById('send');
+  send.disabled = true;
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.innerHTML = `<p class="q">${esc(q)}</p><span class="role">role: ${esc(role)}</span>
+    <div class="spin">running agent…</div>`;
+  out.prepend(card);
+  try {
+    const r = await fetch('/api/ask', {method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({query:q, role})}).then(r => r.json());
+    if (r.error) throw new Error(r.error);
+    const tools = (r.tool_calls||[]).map(c =>
+      `<span class="tool">${esc(c.tool)}(<span class="args">${esc(fmtArgs(c.args))}</span>)</span>`).join('') ||
+      '<span class="tool">no tool — answered directly</span>';
+    card.innerHTML = `<p class="q">${esc(q)}</p><span class="role">role: ${esc(role)}</span>
+      <div class="tools">${tools}</div>
+      <div class="answer">${esc(r.answer)}</div>
+      <div class="meta"><span><b>${r.input_tokens}</b> in / <b>${r.output_tokens}</b> out
+        · <b>${r.tokens_used}</b> tokens</span><span>cost <b>$${r.cost.toFixed(6)}</b></span></div>`;
+  } catch (err) {
+    card.querySelector('.spin').textContent = 'error: ' + err.message;
+  } finally {
+    send.disabled = false;
+    document.getElementById('q').value = '';
+  }
+});
+</script>
+</body>
+</html>
